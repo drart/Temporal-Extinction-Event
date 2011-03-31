@@ -1,9 +1,15 @@
 float[] points;
 int numberofpoints = 50000;
-float fluxthreshold = 35;
+float fluxthreshold = 70;
 
 void endsection()
 {
+  // http://processing.org/discourse/yabb2/YaBB.pl?num=1212706445/1
+  pgl = (PGraphicsOpenGL) g; //processing graphics object
+  gl = pgl.beginGL(); //begin opengl
+  gl.setSwapInterval(1); //set vertical sync on
+  pgl.endGL(); //end opengl
+  
   pushMatrix();
   pushStyle();
   fill(0,5);
@@ -16,7 +22,7 @@ void endsection()
   
   float audiolevel = input.mix.level();
   
-  stroke(audiolevel*500*fades[2]);
+  stroke(audiolevel*1000*fades[2]);
   strokeWeight(1);
   
   for ( int i = 0 ; i < numberofpoints/2; i++)  
