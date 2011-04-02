@@ -1,6 +1,5 @@
 void keyPressed()
 {
-
   if (key == '1')
   {
     lastSection = section;
@@ -15,7 +14,6 @@ void keyPressed()
     doFades = true;
     return;
   }
-
   if (key == '3')
   {
     lastSection = section;
@@ -23,36 +21,24 @@ void keyPressed()
     doFades = true;
     return;
   }
-
-  if ( key == 'a')
-  {
-    fluxampvalue += .15;
-    return;
-  }
-
-  if (key == 'z')
-  { 
-
-    fluxampvalue -= .05;
-    return;
-  }
-
-  if (key == ' ')
-  {
-    fluxampvalue = .5;
-    return;
-  }
-
   if ( key == '0')
   {
     background(0);
     return;
   }
+  if ( key == 'f')
+  {
+    pushStyle();  
+    noStroke();
+    fill(0,6);
+    rect(0,0,width,height);
+    popStyle();
+  } 
 }
 
-
-void OSCsectionchange(int temp)
+void OSCsectionchange(float t)
 {
+    int temp = (int) t;
     if(0 < temp && temp < 4)
     {
       lastSection = section;
@@ -75,10 +61,16 @@ void OSCblank(float bogus){ background(0); }
 
 void OSCscaling(float s)
 {
-   //audioscaling = s; 
+   audioscaling = s; 
+   controlP5.controller("Scaling").setValue(s);
 }
 
-void OSCthreshold(int v)
+void Scaling(float s)
+{
+   audioscaling = s; 
+}
+
+void OSCthreshold(float v)
 {
   fluxthreshold = v;
   controlP5.controller("Threshold").setValue(v);

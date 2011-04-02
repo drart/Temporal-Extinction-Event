@@ -1,15 +1,15 @@
 import ddf.minim.*;
 import ddf.minim.analysis.*;
+import ddf.minim.effects.*;
 import processing.opengl.*;
 import javax.media.opengl.*;
 import oscP5.*;
-
 import controlP5.*;
 ControlP5 controlP5; 
 ControlWindow controlWindow;
 
+// guidance on fake fullscreen hack
 ////   http://processing.org/discourse/yabb2/YaBB.pl?board=Syntax;action=display;num=1185318989
-
 // tearing
 // http://processing.org/discourse/yabb2/YaBB.pl?num=1235056546
 
@@ -21,32 +21,33 @@ int nextsection;
 boolean doFades = false;
 float flux; 
 int index; 
-float fluxampvalue = .5;
+float audioscaling = 1.0;
 float[] spectrum;
 float[] lastspectrum;
 
 Minim minim;
 FFT fft;
 AudioInput input; 
+LowPassFS lpf;
+EffectsChain fx;
 OscP5 oscP5;
+
 PGraphicsOpenGL pgl; //need to use this to stop screen tearing
 GL gl;
 
 void setup()
 {
-  //size ( 1366, 768, OPENGL); // native resolution for EPCOR CENTRE projectors
-  size ( 1280, 800, OPENGL); 
-  //size(960,540, OPENGL);
-  //size(720, 480, OPENGL);
+  size ( 1280, 768, OPENGL); 
   hint(DISABLE_OPENGL_2X_SMOOTH);
-  hint(ENABLE_OPENGL_4X_SMOOTH);   
+  //hint(ENABLE_OPENGL_4X_SMOOTH);   
   hint(DISABLE_OPENGL_ERROR_REPORT); // big speed improvement
-  
+  frameRate(30);
   ///http://processing.org/discourse/yabb2/YaBB.pl?num=1161698951
   oscP5 = new OscP5(this,12345);
   oscP5.plug(this, "OSCsectionchange", "/vr/tev/section"); 
   oscP5.plug(this, "OSCthreshold", "/vr/tev/threshold");
-
+  oscP5.plug(this, "OSCscaling", "/vr/tev/level");
+  
   points = new float[numberofpoints];  
   for ( int i = 0 ; i < numberofpoints/2; i++)  
   {    
@@ -55,7 +56,12 @@ void setup()
   }
   
   minim = new Minim(this);
-  input = minim.getLineIn(Minim.STEREO, 256);
+  input = minim.getLineIn(Minim.STEREO, 512);// change to original setting?
+  lpf = new LowPassFS(100, input.sampleRate());
+  fx = new EffectsChain();
+  fx.add(lpf);
+  //input.addEffect(lpf);
+  fx.enable(lpf);
   fft = new FFT(input.bufferSize(), input.sampleRate());
   fft.noAverages();  
   
@@ -84,14 +90,15 @@ void setup()
   controlWindow = controlP5.addControlWindow("controlP5window",100,100,400,200);
   controlWindow.hideCoordinates();
   controlWindow.setBackground(color(40));
-  
   controlP5.Controller mySlider = controlP5.addSlider("Threshold",0,100,40,40,300,40);
-  
   mySlider.setWindow(controlWindow);
   controlP5.controller("Threshold").setValue(fluxthreshold);
+  controlP5.Controller mySlider2 = controlP5.addSlider("Scaling", 0,2,40,100,300,40);
+  mySlider2.setWindow(controlWindow);
+  controlP5.controller("Scaling").setValue(audioscaling);
   
-    //// FAKE FULLSCREEN ON SECOND SCREEN
-  frame.setLocation(0,0);
+  //// FAKE FULLSCREEN ON SECOND SCREEN
+  frame.setLocation(screen.width,0);
   frame.setAlwaysOnTop(true); 
 }
 
@@ -115,16 +122,14 @@ void draw()
       // flux += (fluxval > 0.0 ) ? fluxval : 0.0;
     }
     System.arraycopy( spectrum, 0, lastspectrum, 0, spectrum.length ); 
-    flux = flux * fluxampvalue;
+
   }
     
     if (section == 1)
-      beginsection();
-      
-    if (section == 2)
+      beginsection(); 
+    else if (section == 2)
       drawmiddle();
-  
-    if (section == 3)
+    else if (section == 3)
       endsection();
       
     if (doFades)
@@ -139,11 +144,7 @@ void stop()
   minim.stop();
   super.stop();
 }
-
-void mouseClicked()
-{
- println(frameRate);  
-}
+void mouseClicked(){  println(frameRate);  }
 
 //// FAKE FULLSCREEN ON SECOND SCREEN
 public void init() {

@@ -1,42 +1,41 @@
 float[] points;
-int numberofpoints = 50000;
-float fluxthreshold = 70;
+int numberofpoints = 80000;
+float fluxthreshold = 30;
 
 void endsection()
 {
+  lpf.setFreq(700);
+  fx.enable(lpf);
+  float audiolevel = input.mix.level();
+  
+  fill(0, 5);
+  noStroke();
+  rect(0, 0, width, height);
+  
   // http://processing.org/discourse/yabb2/YaBB.pl?num=1212706445/1
   pgl = (PGraphicsOpenGL) g; //processing graphics object
   gl = pgl.beginGL(); //begin opengl
   gl.setSwapInterval(1); //set vertical sync on
-  pgl.endGL(); //end opengl
   
-  pushMatrix();
-  pushStyle();
-  fill(0,5);
-  noStroke();
-  rect(0,0,width,height);
-  fill(255);
-  
-  for (int i = 0; i < points.length ; i++)
-     points[i] += random(-2,2);
-  
-  float audiolevel = input.mix.level();
-  
-  stroke(audiolevel*1000*fades[2]);
-  strokeWeight(1);
+  gl.glPushMatrix();
+  gl.glBegin(gl.GL_POINTS);
+  gl.glColor3f(audioscaling*100*audiolevel*fades[2],audioscaling*100*audiolevel*fades[2],audioscaling*100*audiolevel*fades[2]); // 60/255 
   
   for ( int i = 0 ; i < numberofpoints/2; i++)  
-    point( points[i] , points[i+numberofpoints/2] );
-    
-    
+    gl.glVertex2f( points[i], points[i+numberofpoints/2] );
+  gl.glEnd();
+  
+  gl.glPopMatrix();
+  pgl.endGL(); //end opengl
+
+  for (int i = 0; i < points.length ; i++)
+    points[i] += random(-1.6, 1.6);
+
   if (flux > fluxthreshold)
   {
-   noStroke();
-   fill(255);
-   rect(0,0,width,height); 
- }  
- popStyle();
- popMatrix();
-    
+    noStroke();
+    fill(255);
+    rect(0, 0, width, height);
+  }
 }
 
