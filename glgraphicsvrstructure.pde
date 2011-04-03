@@ -98,7 +98,7 @@ void setup()
   controlP5.controller("Scaling").setValue(audioscaling);
   
   //// FAKE FULLSCREEN ON SECOND SCREEN
-  frame.setLocation(screen.width,0);
+  frame.setLocation(screen.width,-40);
   frame.setAlwaysOnTop(true); 
 }
 

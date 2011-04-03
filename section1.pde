@@ -15,7 +15,7 @@ void beginsection()
   fill(0,8 + 100 * (1-fades[0]) );
   rect ( 0,0, width, height );
    
-   fill(200*fades[0],60); 
+   fill(250*fades[0],60); 
    translate(0,height/2); 
    
    for ( int i = 0 ; i < xx.length ; i++)
